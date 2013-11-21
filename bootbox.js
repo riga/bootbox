@@ -2,6 +2,8 @@
  * bootbox.js [master branch]
  *
  * http://bootboxjs.com/license.txt
+ * 
+ * Forked by riga (https://github.com/riga/bootbox)
  */
 // @see https://github.com/makeusabrew/bootbox/issues/71
 window.bootbox = window.bootbox || (function init($, undefined) {
@@ -170,21 +172,24 @@ window.bootbox = window.bootbox || (function init($, undefined) {
    * so in the latter case:
    * mapArguments(["foo", $.noop], ["message", "callback"])
    * -> { message: "foo", callback: $.noop }
+   * any arg in 'args' that won't be translated via 'properties'
+   * is - if it's an object - used to extend the returned object
    */
   function mapArguments(args, properties) {
-    var argn = args.length;
+    args = [].slice.call(args);
+
+    if (args.length == 1)
+      return args[0];
+
     var options = {};
+    var nprop = properties.length;
 
-    if (argn < 1 || argn > 2) {
-      throw new Error("Invalid argument length");
-    }
-
-    if (argn === 2 || typeof args[0] === "string") {
-      options[properties[0]] = args[0];
-      options[properties[1]] = args[1];
-    } else {
-      options = args[0];
-    }
+    args.forEach(function(arg, i) {
+      if (i < nprop)
+        options[properties[i]] = arg;
+      else if ($.isPlainObject(arg))
+        $.extend(true, options, arg);
+    });
 
     return options;
   }
@@ -274,6 +279,7 @@ window.bootbox = window.bootbox || (function init($, undefined) {
     var options;
 
     options = mergeDialogOptions("alert", ["ok"], ["message", "callback"], arguments);
+    console.log(options);
 
     if (options.callback && !$.isFunction(options.callback)) {
       throw new Error("alert requires callback property to be a function when provided");
